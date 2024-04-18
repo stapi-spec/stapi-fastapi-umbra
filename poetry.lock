@@ -986,7 +986,7 @@ name = "stat-fastapi"
 version = "0.0.0"
 description = "Spatio Temporal Asset Tasking with FastAPI"
 optional = false
-python-versions = ">=3.10"
+python-versions = "^3.10"
 files = []
 develop = false
 
@@ -1000,7 +1000,7 @@ pygeofilter = "^0.2.1"
 type = "git"
 url = "https://github.com/stat-utils/stat-fastapi"
 reference = "HEAD"
-resolved_reference = "1695c1db02cd117809675aa992378a1d37e3ab1d"
+resolved_reference = "7b9ee1cd075ced7ef5b47a08a1f5e35ed40657ea"
 
 [[package]]
 name = "tomli"
@@ -1093,5 +1093,5 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 
 [metadata]
 lock-version = "2.0"
-python-versions = ">=3.10"
-content-hash = "ac13a59320b35f0f03f020f9fbace9b9ece09a674167c2df67378bb07dec0c2b"
+python-versions = ">=3.10, <4"
+content-hash = "eee5a31230c387abd242c1ca41ceec1e5b1d0c28f78857b8ef3bb39a0aaf9dea"
