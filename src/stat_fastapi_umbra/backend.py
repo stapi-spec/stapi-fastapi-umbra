@@ -1,10 +1,10 @@
 """Umbra Backend Module"""
 
 from fastapi import HTTPException, Request
-
 from stat_fastapi.models.opportunity import Opportunity, OpportunitySearch
 from stat_fastapi.models.order import Order
 from stat_fastapi.models.product import Product
+
 from stat_fastapi_umbra.products import PRODUCTS
 
 
