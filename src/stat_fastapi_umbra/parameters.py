@@ -38,4 +38,6 @@ class UmbraSpotlightParameters(BaseModel):
 
 
 class UmbraArchiveParameters(BaseModel):
-    pass
+    sar_resolution_range: float = Field(alias="sar:resolution_range", title="Range Resolution in Meters", description="", default=1, ge=0.25, le=2)
+    sar_azimuth_looks: int = Field(alias="sar:azimuth_looks", title="Azimuth Looks", description="", default=1, ge=1, le=8)
+    platform: list[SatelliteID] = Field(title="Satellite ID", description="The satellites to consider for this Opportunity. See https://docs.canopy.umbra.space/docs/umbra-satellites", default=DEFAULT_SATELLITE_IDS)
