@@ -37,6 +37,9 @@ canopy_docs_link = Link(href="https://docs.canopy.umbra.space", rel="documentati
 
 
 SPOTLIGHT_PRODUCT = Product(
+    conformsTo=[
+        "https://geojson.org/schema/Point.json"
+    ],
     id="umbra_spotlight",
     title="Umbra Spotlight Task",
     description="Spotlight images served by creating new Orders.",
@@ -48,6 +51,10 @@ SPOTLIGHT_PRODUCT = Product(
 )
 
 ARCHIVE_PRODUCT = Product(
+    conformsTo=[
+        "https://geojson.org/schema/Polygon.json",
+        "https://geojson.org/schema/MultiPolygon.json"
+    ],
     id="umbra_archive_catalog",
     title="Umbra Archive Catalog",
     description="Umbra SAR Images served by the Archive Catalog.",
