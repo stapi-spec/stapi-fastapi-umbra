@@ -24,13 +24,13 @@ settings = Settings.load()
 class UmbraBackend:
     """Umbra STAT Backend"""
 
-    def products(self, request: Request) -> list[Product]:
+    async def get_products(self, request: Request) -> list[Product]:
         """
         Return a list of supported products.
         """
         return PRODUCTS
 
-    def product(self, product_id: str, request: Request) -> Product | None:
+    async def get_product(self, product_id: str, request: Request) -> Product | None:
         """
         Return the product identified by `product_id` or `None` if it isn't
         supported.
@@ -55,14 +55,13 @@ class UmbraBackend:
 
             payload = opportunity_request_to_feasibility_request(search)
             payload_to_send = payload.model_dump_json()
-            print(f"{payload_to_send=}")
+
             feasibility_post = httpx.post(
                 url=settings.feasibility_url,
                 json=json.loads(payload_to_send),
                 headers=headers,
             )
-            print(f"{feasibility_post.request.content=}")
-            print(feasibility_post.json())
+
             feasibility_post.raise_for_status()
             request_id = feasibility_post.json()["id"]
             i = 0
@@ -73,18 +72,17 @@ class UmbraBackend:
                 )
                 feasibility_get.raise_for_status()
                 status = feasibility_get.json()["status"]
-                print(f"Feasibility Status: {status}")
+
                 if status == "COMPLETED":
                     break
                 await asyncio.sleep(1)
-            print(f"{feasibility_get.json()}")
+
             feasibility_response = FeasibilityResponse.model_validate(
                 feasibility_get.json()
             )
             opportunities = feasibility_response_to_opportunity_list(
                 feasibility_response, product_id=search.product_id
             )
-            print(opportunities)
 
             return opportunities
 
@@ -96,7 +94,7 @@ class UmbraBackend:
                 stac_item_to_opportunity(o, product_id=search.product_id)
                 for o in res.json()["features"]
             ]
-            print(f"{opportunities=}")
+
             return opportunities
         else:
             raise HTTPException(
