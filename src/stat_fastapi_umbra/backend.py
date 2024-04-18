@@ -1,7 +1,5 @@
 """Umbra Backend Module"""
 
-import json
-
 import httpx
 from fastapi import HTTPException, Request
 from stat_fastapi.models.opportunity import Opportunity, OpportunityRequest
