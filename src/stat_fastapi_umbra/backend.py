@@ -1,11 +1,17 @@
 """Umbra Backend Module"""
 
+import json
+
+import httpx
 from fastapi import HTTPException, Request
-from stat_fastapi.models.opportunity import Opportunity, OpportunitySearch
+from stat_fastapi.models.opportunity import Opportunity, OpportunityRequest
 from stat_fastapi.models.order import Order
 from stat_fastapi.models.product import Product
 
 from stat_fastapi_umbra.products import PRODUCTS
+from stat_fastapi_umbra.settings import Settings
+
+settings = Settings.load()
 
 
 class UmbraBackend:
@@ -28,7 +34,7 @@ class UmbraBackend:
         raise HTTPException(status_code=404, detail="Product not found")
 
     async def search_opportunities(
-        self, search: OpportunitySearch, request: Request
+        self, search: OpportunityRequest, request: Request
     ) -> list[Opportunity]:
         """
         Search for ordering opportunities for the  given search parameters.
@@ -36,15 +42,34 @@ class UmbraBackend:
         Backends must validate search constraints and raise
         `stat_fastapi.backend.exceptions.ConstraintsException` if not valid.
         """
+        if search.product_id == "UMBRA:SPOTLIGHT_TASK":
+            raise HTTPException(status_code=404, detail="Not Implemented")
+        elif search.product_id == "umbra_archive_catalog":
+            request_payload = {
+                "filter-lang": "cql2json",
+                "filter": search.filter or {},
+            }
 
-    async def create_order(self, search: OpportunitySearch, request: Request) -> Order:
+            request_payload_json = json.dumps(request_payload)
+            print(f"{request_payload_json=}")
+            res = httpx.post(url=settings.stac_url, json=request_payload_json)
+            res.raise_for_status()
+            features = res.json()["features"]
+            return features
+        else:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No available products matching id {search.product_id}",
+            )
+
+    async def create_order(self, search: OpportunityRequest, request: Request) -> Order:
         """
         Create a new order.
 
         Backends must validate order payload and raise
         `stat_fastapi.backend.exceptions.ConstraintsException` if not valid.
         """
-        raise HTTPException("Not Yet Implemented")
+        raise HTTPException(status_code=400, detail="Not Yet Implemented")
 
     async def get_order(self, order_id: str, request: Request) -> Order:
         """
@@ -53,4 +78,4 @@ class UmbraBackend:
         Backends must raise `stat_fastapi.backend.exceptions.NotFoundException`
         if not found or access denied.
         """
-        raise HTTPException("Not Yet Implemented")
+        raise HTTPException(status_code=400, detail="Not Yet Implemented")
