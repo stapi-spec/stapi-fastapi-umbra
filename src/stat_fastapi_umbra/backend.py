@@ -1,12 +1,20 @@
 """Umbra Backend Module"""
 
+import asyncio
+import json
+
 import httpx
 from fastapi import HTTPException, Request
 from stat_fastapi.models.opportunity import Opportunity, OpportunityRequest
 from stat_fastapi.models.order import Order
 from stat_fastapi.models.product import Product
 
-from stat_fastapi_umbra.opportunities import stac_item_to_opportunity
+from stat_fastapi_umbra.models import FeasibilityResponse
+from stat_fastapi_umbra.opportunities import (
+    feasibility_response_to_opportunity_list,
+    opportunity_request_to_feasibility_request,
+    stac_item_to_opportunity,
+)
 from stat_fastapi_umbra.products import PRODUCTS
 from stat_fastapi_umbra.settings import Settings
 
@@ -42,7 +50,44 @@ class UmbraBackend:
         `stat_fastapi.backend.exceptions.ConstraintsException` if not valid.
         """
         if search.product_id == "umbra_spotlight":
-            raise HTTPException(status_code=404, detail="Not Implemented")
+            authorization = request.headers.get("authorization")
+            headers = {"Authorization": authorization}
+
+            payload = opportunity_request_to_feasibility_request(search)
+            payload_to_send = payload.model_dump_json()
+            print(f"{payload_to_send=}")
+            feasibility_post = httpx.post(
+                url=settings.feasibility_url,
+                json=json.loads(payload_to_send),
+                headers=headers,
+            )
+            print(f"{feasibility_post.request.content=}")
+            print(feasibility_post.json())
+            feasibility_post.raise_for_status()
+            request_id = feasibility_post.json()["id"]
+            i = 0
+            while i <= settings.feasibility_timeout:
+                feasibility_get = httpx.get(
+                    url=f"{settings.feasibility_url}/{request_id}",
+                    headers=headers,
+                )
+                feasibility_get.raise_for_status()
+                status = feasibility_get.json()["status"]
+                print(f"Feasibility Status: {status}")
+                if status == "COMPLETED":
+                    break
+                await asyncio.sleep(1)
+            print(f"{feasibility_get.json()}")
+            feasibility_response = FeasibilityResponse.model_validate(
+                feasibility_get.json()
+            )
+            opportunities = feasibility_response_to_opportunity_list(
+                feasibility_response, product_id=search.product_id
+            )
+            print(opportunities)
+
+            return opportunities
+
         elif search.product_id == "umbra_archive_catalog":
             request_payload = {"filter-lang": "cql2-json", **search.model_dump()}
             res = httpx.post(url=settings.stac_url, json=request_payload)
