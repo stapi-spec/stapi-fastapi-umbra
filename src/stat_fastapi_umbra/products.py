@@ -23,7 +23,7 @@ class SpotlightConstraints(BaseModel):
 
 
 SPOTLIGHT_PRODUCT = Product(
-    id="UMBRA:SPOTLIGHT_TASK",
+    id="umbra_spotlight",
     title="Umbra spotlight SAR capture",
     description="Umbra Spotlight Product",
     keywords=["sar", "radar", "umbra"],
@@ -45,9 +45,9 @@ SPOTLIGHT_PRODUCT = Product(
 )
 
 ARCHIVE_PRODUCT = Product(
-    id="UMBRA:SPOTLIGHT_ARCHIVE_TASK",
-    title="Umbra SAR spotlight capture from Archive",
-    description="Archive task from Umbra's STAC",
+    id="umbra_archive_catalog",
+    title="Umbra Archive Catalog",
+    description="Umbra SAR Images served by the Archive Catalog.",
     keywords=["sar", "radar", "umbra", "catalog", "archive"],
     license="CC0-1.0",
     providers=[
@@ -62,7 +62,9 @@ ARCHIVE_PRODUCT = Product(
             url="http://umbra.space",
         )
     ],
-    links=[Link(href="https://api.canopy.umbra.space/archive/search", rel="catalog")],
+    links=[
+        Link(href="https://api.canopy.umbra.space/archive/search", rel="catalog"),
+    ],
     constraints=SpotlightConstraints,
 )
 PRODUCTS = [SPOTLIGHT_PRODUCT, ARCHIVE_PRODUCT]

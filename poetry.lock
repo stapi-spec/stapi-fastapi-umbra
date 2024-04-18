@@ -1000,7 +1000,7 @@ pygeofilter = "^0.2.1"
 type = "git"
 url = "https://github.com/stat-utils/stat-fastapi"
 reference = "HEAD"
-resolved_reference = "4300355a1a470ce27f83fed3bfe447debcf711c5"
+resolved_reference = "1695c1db02cd117809675aa992378a1d37e3ab1d"
 
 [[package]]
 name = "tomli"
