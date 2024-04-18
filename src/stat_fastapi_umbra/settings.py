@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     umbra_api_url: str = UMBRA_API_BASE_URL
     feasibility_url: str = f"{UMBRA_API_BASE_URL}/tasking/feasibilities"
     stac_url: str = f"{UMBRA_API_BASE_URL}/archive/search"
+    feasibility_timeout: int = 10
 
     @classmethod
     def load(cls) -> "Settings":
