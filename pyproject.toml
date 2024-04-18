@@ -28,8 +28,7 @@ pre-commit = "^3.7.0"
 mangum = "^0.17.0"
 
 [tool.poetry.scripts]
-dev = "stat_fastapi.__dev__:cli"
-umbra = "stat_fastapi_umbra.__dev__:cli"
+dev = "stat_fastapi_umbra.__dev__:cli"
 
 
 [tool.ruff]
@@ -58,3 +57,7 @@ filterwarnings = [
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+python = ">=3.10"
+fastapi = "^0.110.0"
+pydantic = "^2.6.4"
+geojson-pydantic = "^1.0.2"
