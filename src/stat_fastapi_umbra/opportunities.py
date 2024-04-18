@@ -35,11 +35,24 @@ def opportunity_request_to_feasibility_request(
         raise ValueError(
             "OpportunityRequest.geometry is restricted to a Point for this product"
         )
+    constraints = {}
+    filter_args = opportunity_request.filter.get("args")
+    for arg in filter_args:
+        if arg["op"] == ">=":
+            prefix = "min"
+        elif arg["op"] == "<=":
+            prefix = "max"
+
+        inner_args = arg[0]["args"]
+        key = inner_args[0]["property"]
+        val = inner_args[1]
+        constraints[f"{prefix}{key.upper()}"] = val
 
     return FeasibilityRequest(
         imagingMode=ImagingMode.SPOTLIGHT,
         spotlightConstraints=SpotlightConstraints(
             geometry=geometry,
+            sceneSize=filter.get("sceneSize"),
         ),
         windowStartAt=start_time,
         windowEndAt=end_time,
