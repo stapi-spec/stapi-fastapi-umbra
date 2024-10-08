@@ -8,6 +8,7 @@ from fastapi import HTTPException, Request
 from stapi_fastapi.models.opportunity import Opportunity, OpportunityRequest
 from stapi_fastapi.models.order import Order
 from stapi_fastapi.models.product import Product
+
 from stapi_fastapi_umbra.models import FeasibilityResponse
 from stapi_fastapi_umbra.opportunities import (
     feasibility_response_to_opportunity_list,
@@ -23,13 +24,13 @@ settings = Settings.load()
 class UmbraBackend:
     """Umbra STAT Backend"""
 
-    async def get_products(self, request: Request) -> list[Product]:
+    def products(self, request: Request) -> list[Product]:
         """
         Return a list of supported products.
         """
         return PRODUCTS
 
-    async def get_product(self, product_id: str, request: Request) -> Product | None:
+    def product(self, product_id: str, request: Request) -> Product | None:
         """
         Return the product identified by `product_id` or `None` if it isn't
         supported.
