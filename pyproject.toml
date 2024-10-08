@@ -28,7 +28,7 @@ pre-commit = "^3.7.0"
 mangum = "^0.17.0"
 
 [tool.poetry.scripts]
-dev = "stapi_fastapi_umbra.__dev__:cli"
+umbra = "stapi_fastapi_umbra.__dev__:cli"
 
 
 [tool.ruff]
