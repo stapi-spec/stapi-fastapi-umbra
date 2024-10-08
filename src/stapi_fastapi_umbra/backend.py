@@ -88,13 +88,17 @@ class UmbraBackend:
 
         elif search.product_id == "umbra_archive_catalog":
             request_payload = {"filter-lang": "cql2-json", **search.model_dump()}
+
+            # SearchOpportunity requires a `geometry` field, but the Canopy API archive/search
+            # route uses an optional 'intersects' field.
+            request_payload["intersects"] = request_payload.pop("geometry")
+
             res = httpx.post(url=settings.stac_url, json=request_payload)
             res.raise_for_status()
             opportunities = [
                 stac_item_to_opportunity(o, product_id=search.product_id)
                 for o in res.json()["features"]
             ]
-
             return opportunities
         else:
             raise HTTPException(

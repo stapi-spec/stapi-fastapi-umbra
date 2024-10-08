@@ -24,7 +24,7 @@ No authorization is required to search the public [Umbra Archive](https://docs.c
 ```
 curl -H "Content-Type: application/json" \
 -d '{
-    "geometry": {
+    "intersects": {
         "type": "Point",
         "coordinates": [13.4, 52.5]
     },
