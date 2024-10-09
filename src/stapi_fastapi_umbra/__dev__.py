@@ -21,11 +21,6 @@ from stapi_fastapi_umbra import UmbraBackend
 logger = logging.getLogger(__name__)
 
 
-class DevSettings(BaseSettings):
-    port: int = 8001
-    host: str = "127.0.0.1"
-
-
 settings = Settings()
 logger.info(f"Starting up with canopy url: {settings.canopy_api_url}")
 logger.info(
@@ -37,10 +32,9 @@ app.include_router(StapiRouter(backend=UmbraBackend()).router)
 
 
 def cli():
-    settings = DevSettings()
     run(
         "stapi_fastapi_umbra.__dev__:app",
         reload=True,
-        host=settings.host,
-        port=settings.port,
+        host=settings.fastapi_host,
+        port=settings.fastapi_port,
     )

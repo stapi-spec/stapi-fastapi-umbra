@@ -25,12 +25,20 @@ CANOPY_API_SANDBOX_URL = "https://api.canopy.prod.umbra-sandbox.space"
 class Settings(BaseSettings):
     """Settings for Umbra Backend"""
 
+    fastapi_host: str = "localhost"
+    fastapi_port: int = 8001
     loglevel: LogLevel = LogLevel.INFO
     database: str = "sqlite://"
     canopy_token: str | None = None
     canopy_api_url: str = CANOPY_API_SANDBOX_URL
     canopy_url: str = CANOPY_URL
     feasibility_timeout: int = 10
+
+    @property
+    def fastapi_url(self):
+        if self.fastapi_port == 80 or self.fastapi_port == 443:
+            return self.fastapi_host
+        return f"{self.fastapi_host}:{self.fastapi_port}"
 
     @classmethod
     def load(cls) -> "Settings":

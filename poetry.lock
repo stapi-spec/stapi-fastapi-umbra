@@ -974,7 +974,7 @@ pygeofilter = "^0.2.4"
 type = "git"
 url = "https://github.com/stapi-spec/stapi-fastapi"
 reference = "HEAD"
-resolved_reference = "d88e1cca20fad439fc4186a6c05946654dadf5be"
+resolved_reference = "080ad6db9b971a38a6c1dcba9d61347a86e50abe"
 
 [[package]]
 name = "starlette"
