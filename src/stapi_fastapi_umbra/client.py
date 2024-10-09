@@ -1,15 +1,19 @@
 import asyncio
 import json
 import logging
+from uuid import UUID
 
 import httpx
 from stapi_fastapi.models.opportunity import Opportunity, OpportunityRequest
+from stapi_fastapi.models.order import Order
 
-from stapi_fastapi_umbra.models import FeasibilityResponse
+from stapi_fastapi_umbra.models import FeasibilityResponse, TaskResponse
 from stapi_fastapi_umbra.opportunities import (
     feasibility_response_to_opportunity_list,
     opportunity_request_to_feasibility_request,
+    opportunity_request_to_task_request,
     stac_item_to_opportunity,
+    task_response_to_order,
 )
 from stapi_fastapi_umbra.settings import CANOPY_API_URL, Settings
 
@@ -95,3 +99,50 @@ class Client:
         )
 
         return opportunities
+
+    def create_order_from_opportunity_request(
+        self, search: OpportunityRequest
+    ) -> Order:
+        if not self.canopy_token:
+            raise AuthorizationError(
+                "Time range requested includes future opportunities, canopy_token is required"
+            )
+
+        headers = {"Authorization": f"Bearer {self.canopy_token}"}
+
+        payload = opportunity_request_to_task_request(search)
+        payload_to_send = payload.model_dump_json()
+
+        logger.info(f"submitting canopy task request: {payload_to_send}")
+
+        tasking_url = f"{self.canopy_api_url}/tasking/tasks"
+        response = httpx.post(
+            url=tasking_url,
+            json=json.loads(payload_to_send),
+            headers=headers,
+        )
+        response.raise_for_status()
+
+        task_response = TaskResponse.model_validate(response.json())
+
+        return task_response_to_order(task_response, search.product_id)
+
+    def get_order_by_id(self, order_id: str) -> Order:
+        if not self.canopy_token:
+            raise AuthorizationError(
+                "Time range requested includes future opportunities, canopy_token is required"
+            )
+
+        headers = {"Authorization": f"Bearer {self.canopy_token}"}
+        try:
+            task_id = UUID(order_id)
+        except Exception:
+            raise ValueError("order_id must be a valid UUID")
+        task_url = f"{settings.canopy_api_url}/tasking/tasks/{task_id}"
+        response = httpx.get(
+            url=task_url,
+            headers=headers,
+        )
+        response.raise_for_status()
+        task_response = TaskResponse.model_validate(response.json())
+        return task_response_to_order(task_response, "umbra_spotlight")

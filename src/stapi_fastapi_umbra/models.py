@@ -1,4 +1,5 @@
 from enum import Enum
+from uuid import UUID
 
 from geojson_pydantic import Point
 from pydantic import AwareDatetime, BaseModel, Field
@@ -55,3 +56,25 @@ class FeasibilityResponse(BaseModel):
     updatedAt: AwareDatetime
     opportunities: list[UmbraOpportunity]
     feasibilityRequest: FeasibilityRequest
+
+
+class TaskRequest(BaseModel):
+    taskName: str
+    imagingMode: ImagingMode
+    spotlightConstraints: SpotlightConstraints
+    windowStartAt: AwareDatetime
+    windowEndAt: AwareDatetime
+    deliveryConfigId: str | None
+    userOrderId: str | None
+
+
+class TaskResponseProperties(BaseModel):
+    spotlightConstraints: SpotlightConstraints
+    windowStartAt: AwareDatetime
+    windowEndAt: AwareDatetime
+
+
+class TaskResponse(BaseModel):
+    id: UUID
+    geometry: Point
+    properties: TaskResponseProperties

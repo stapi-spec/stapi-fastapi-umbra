@@ -1,7 +1,5 @@
 """Umbra Backend Module"""
 
-import asyncio
-import json
 import logging
 from datetime import datetime, timezone
 
@@ -11,12 +9,6 @@ from stapi_fastapi.models.order import Order
 from stapi_fastapi.models.product import Product
 
 from stapi_fastapi_umbra.client import AuthorizationError, Client
-from stapi_fastapi_umbra.models import FeasibilityResponse
-from stapi_fastapi_umbra.opportunities import (
-    feasibility_response_to_opportunity_list,
-    opportunity_request_to_feasibility_request,
-    stac_item_to_opportunity,
-)
 from stapi_fastapi_umbra.products import PRODUCTS
 from stapi_fastapi_umbra.settings import Settings
 
@@ -114,7 +106,20 @@ class UmbraBackend:
         Backends must validate order payload and raise
         `stapi_fastapi.backend.exceptions.ConstraintsException` if not valid.
         """
-        raise HTTPException(status_code=400, detail="Not Yet Implemented")
+        if search.product_id != "umbra_spotlight":
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No available products matching id {search.product_id}",
+            )
+
+        client = Client(
+            canopy_api_url=settings.canopy_api_url,
+            canopy_token=settings.canopy_token,
+        )
+
+        order = client.create_order_from_opportunity_request(search)
+
+        return order
 
     async def get_order(self, order_id: str, request: Request) -> Order:
         """
@@ -123,4 +128,12 @@ class UmbraBackend:
         Backends must raise `stapi_fastapi.backend.exceptions.NotFoundException`
         if not found or access denied.
         """
-        raise HTTPException(status_code=400, detail="Not Yet Implemented")
+
+        client = Client(
+            canopy_api_url=settings.canopy_api_url,
+            canopy_token=settings.canopy_token,
+        )
+
+        order = client.get_order_by_id(order_id)
+
+        return order
