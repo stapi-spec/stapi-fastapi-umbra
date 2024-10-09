@@ -11,8 +11,7 @@ python = "3.12.*"
 fastapi = "^0.115.0"
 pydantic = "^2.6.4"
 geojson-pydantic = "^1.0.2"
-# TODO: Pin to commit
-stapi_fastapi = { git = "https://github.com/stapi-spec/stapi-fastapi" }
+stapi_fastapi = { git = "https://github.com/stapi-spec/stapi-fastapi", rev = "080ad6d" }
 
 
 [tool.poetry.group.dev.dependencies]
