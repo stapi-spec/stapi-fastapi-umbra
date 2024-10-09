@@ -9,6 +9,10 @@ An implementation of `stapi-fastapi` for Umbra Space proxying to the [Canopy API
 poetry run umbra
 ```
 
+By default the environment is configured to use the Sandbox. If you want to switch to the live environment set the environment variable `CANOPY_API_URL=https://api.canopy.umbra.space`.
+
+Ensure you've set the environment variable `CANOPY_TOKEN=...` with a valid token that matches whichever environment you've targeted with `CANOPY_API_URL`.
+
 ### Get all products
 
 ```
