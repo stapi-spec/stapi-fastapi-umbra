@@ -11,7 +11,7 @@ from stapi_fastapi_umbra.opportunities import (
     opportunity_request_to_feasibility_request,
     stac_item_to_opportunity,
 )
-from stapi_fastapi_umbra.settings import CANOPY_API_BASE_URL, Settings
+from stapi_fastapi_umbra.settings import CANOPY_API_URL, Settings
 
 settings = Settings.load()
 logger = logging.getLogger()
@@ -39,7 +39,7 @@ class Client:
         # route uses an optional 'intersects' field.
         request_payload["intersects"] = request_payload.pop("geometry")
 
-        archive_url = f"{CANOPY_API_BASE_URL}/archive/search"
+        archive_url = f"{CANOPY_API_URL}/archive/search"
         res = httpx.post(url=archive_url, json=request_payload)
         res.raise_for_status()
         opportunities = [

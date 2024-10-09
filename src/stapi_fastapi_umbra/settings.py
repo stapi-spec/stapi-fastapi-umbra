@@ -17,7 +17,8 @@ class LogLevel(Enum):
     NOTSET = "NOTSET"
 
 
-CANOPY_API_BASE_URL = "https://api.canopy.umbra.space"
+CANOPY_API_URL = "https://api.canopy.umbra.space"
+CANOPY_API_SANDBOX_URL = "https://api.canopy.prod.umbra-sandbox.space"
 
 
 class Settings(BaseSettings):
@@ -26,7 +27,7 @@ class Settings(BaseSettings):
     loglevel: LogLevel = LogLevel.INFO
     database: str = "sqlite://"
     canopy_token: str | None = None
-    canopy_api_url: str = CANOPY_API_BASE_URL
+    canopy_api_url: str = CANOPY_API_SANDBOX_URL
     feasibility_timeout: int = 10
 
     @classmethod
