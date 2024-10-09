@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 
 import httpx
 from stapi_fastapi.models.opportunity import Opportunity, OpportunityRequest
@@ -10,9 +11,10 @@ from stapi_fastapi_umbra.opportunities import (
     opportunity_request_to_feasibility_request,
     stac_item_to_opportunity,
 )
-from stapi_fastapi_umbra.settings import Settings
+from stapi_fastapi_umbra.settings import CANOPY_API_BASE_URL, Settings
 
 settings = Settings.load()
+logger = logging.getLogger()
 
 
 class AuthorizationError(Exception):
@@ -20,8 +22,9 @@ class AuthorizationError(Exception):
 
 
 class Client:
-    def __init__(self, authorization: str | None) -> None:
-        self.authorization = authorization
+    def __init__(self, canopy_api_url: str, canopy_token: str | None) -> None:
+        self.canopy_api_url = canopy_api_url
+        self.canopy_token = canopy_token
 
     async def get_opportunities_from_archive(
         self,
@@ -36,7 +39,8 @@ class Client:
         # route uses an optional 'intersects' field.
         request_payload["intersects"] = request_payload.pop("geometry")
 
-        res = httpx.post(url=settings.stac_url, json=request_payload)
+        archive_url = f"{CANOPY_API_BASE_URL}/archive/search"
+        res = httpx.post(url=archive_url, json=request_payload)
         res.raise_for_status()
         opportunities = [
             stac_item_to_opportunity(o, product_id=search.product_id)
@@ -51,18 +55,19 @@ class Client:
         # Gets opportunities from feasibility. Only point geometry searches
         # are supported.
 
-        if not self.authorization:
+        if not self.canopy_token:
             raise AuthorizationError(
-                "Time range requested includes future opportunities, authorization is required"
+                "Time range requested includes future opportunities, canopy_token is required"
             )
 
-        headers = {"Authorization": self.authorization}
+        headers = {"Authorization": f"Bearer {self.canopy_token}"}
 
         payload = opportunity_request_to_feasibility_request(search)
         payload_to_send = payload.model_dump_json()
 
+        feasibility_url = f"{self.canopy_api_url}/tasking/feasibilities"
         feasibility_post = httpx.post(
-            url=settings.feasibility_url,
+            url=feasibility_url,
             json=json.loads(payload_to_send),
             headers=headers,
         )
@@ -72,7 +77,7 @@ class Client:
         i = 0
         while i <= settings.feasibility_timeout:
             feasibility_get = httpx.get(
-                url=f"{settings.feasibility_url}/{request_id}",
+                url=f"{feasibility_url}/{request_id}",
                 headers=headers,
             )
             feasibility_get.raise_for_status()
