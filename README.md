@@ -24,17 +24,20 @@ No authorization is required to search the public [Umbra Archive](https://docs.c
 ```
 curl -H "Content-Type: application/json" \
 -d '{
-    "intersects": {
+    "geometry": {
         "type": "Point",
-        "coordinates": [13.4, 52.5]
+        "coordinates": [-112.146,40.522]
+    },
+    "filter": {
+        "op": "=",
+        "args": [
+        true,
+        {
+            "property": "umbra:open-data-catalog"
+        }
+        ]
     },
     "product_id": "umbra_archive_catalog",
     "datetime": "2024-08-01T00:00:00Z/2024-09-01T00:00:00Z"
 }' -X POST http://127.0.0.1:8001/opportunities
-```
-
-#### Spotlight
-
-```
-curl http://127.0.0.1:8001/products
 ```
