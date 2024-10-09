@@ -90,7 +90,11 @@ def feasibility_response_to_opportunity_list(
                     type="application/json",
                     method="POST",
                     # TODO: body from TaskRequest
-                    body={}
+                    body={
+                        "geometry": geometry.model_dump(),
+                        "datetime": f"{o.windowStartAt.isoformat()}/{o.windowEndAt.isoformat()}",
+                        "product_id": "umbra_spotlight"
+                    }
                 )
             ]
         )
@@ -114,7 +118,7 @@ def opportunity_request_to_task_request(opportunity_request: OpportunityRequest)
         ),
         windowStartAt=start_time,
         windowEndAt=end_time,
-        deliveryConfigId=None,  # set for live environment
+        deliveryConfigId='09530dcb-eecb-4235-b409-0d6381b5e909',
         userOrderId="stapi-sprint"
     )
 
