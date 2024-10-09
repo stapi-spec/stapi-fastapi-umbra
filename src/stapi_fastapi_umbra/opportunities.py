@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import uuid4
 
 from geojson_pydantic import Point
@@ -14,17 +15,35 @@ from stapi_fastapi_umbra.models import (FeasibilityRequest,
                                         TaskResponse)
 from stapi_fastapi_umbra.settings import Settings
 
-settings = Settings.load()
+settings = Settings()
+
 
 def stac_item_to_opportunity(item: dict, product_id: str) -> Opportunity:
     item_props = item["properties"]
+    start_datetime = datetime.fromisoformat(item_props['end_datetime'])
+    end_datetime = datetime.fromisoformat(item_props['start_datetime'])
+    duration_seconds = (end_datetime - start_datetime).total_seconds()
     return Opportunity(
         geometry=item["geometry"],
         properties=OpportunityProperties(
             # TODO: Add additional fields here if possible to add extra properties
             product_id=product_id,
             datetime=f'{item_props['start_datetime']}/{item_props['end_datetime']}',
+            duration_seconds=duration_seconds,
+            grazing_angle_degrees=[item_props['umbra:grazing_angle_degrees'], item_props['umbra:grazing_angle_degrees']],
+            target_azimuth_angle_degrees=[item_props['umbra:target_azimuth_angle_degrees'], item_props['umbra:target_azimuth_angle_degrees']],
+            satellite_id=item_props['platform'],
+            imaging_mode="SPOTLIGHT_ARCHIVE"
         ),
+        links=[Link(
+            rel="create-order",
+            href=f"{settings.fastapi_url}/orders",
+            type="application/json",
+            method="POST",
+            body={
+                "archive_id": item["id"],
+            }
+        )]
     )
 
 
@@ -57,8 +76,27 @@ def feasibility_response_to_opportunity_list(
             properties=OpportunityProperties(
                 product_id=product_id,
                 datetime=f"{o.windowStartAt.isoformat()}/{o.windowEndAt.isoformat()}",
+                duration_seconds=o.durationSec,
+                grazing_angle_degrees=[o.grazingAngleStartDegrees, o.grazingAngleEndDegrees],
+                target_azimuth_angle_degrees=[o.targetAzimuthAngleStartDegrees, o.targetAzimuthAngleEndDegrees],
+                satellite_id=o.satelliteId,
+                imaging_mode="SPOTLIGHT",
             ),
             geometry=geometry,
+            links=[
+                Link(
+                    rel="create-order",
+                    href=f"{settings.fastapi_url}/orders",
+                    type="application/json",
+                    method="POST",
+                    # TODO: body from TaskRequest
+                    body={
+                        "geometry": geometry.model_dump(),
+                        "datetime": f"{o.windowStartAt.isoformat()}/{o.windowEndAt.isoformat()}",
+                        "product_id": "umbra_spotlight"
+                    }
+                )
+            ]
         )
         for o in feasibility_response.opportunities
     ]
@@ -80,7 +118,7 @@ def opportunity_request_to_task_request(opportunity_request: OpportunityRequest)
         ),
         windowStartAt=start_time,
         windowEndAt=end_time,
-        deliveryConfigId=None,  # set for live environment
+        deliveryConfigId='09530dcb-eecb-4235-b409-0d6381b5e909',
         userOrderId="stapi-sprint"
     )
 

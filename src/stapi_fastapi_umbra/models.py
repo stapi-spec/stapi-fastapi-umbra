@@ -46,6 +46,10 @@ class UmbraOpportunity(BaseModel):
     windowEndAt: AwareDatetime
     durationSec: float
     grazingAngleStartDegrees: float
+    grazingAngleEndDegrees: float
+    targetAzimuthAngleStartDegrees: float
+    targetAzimuthAngleEndDegrees: float
+    satelliteId: str
 
 
 class FeasibilityResponse(BaseModel):
