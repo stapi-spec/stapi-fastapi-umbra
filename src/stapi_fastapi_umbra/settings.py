@@ -25,6 +25,7 @@ class Settings(BaseSettings):
 
     loglevel: LogLevel = LogLevel.INFO
     database: str = "sqlite://"
+    canopy_token: str | None = None
     umbra_api_url: str = UMBRA_API_BASE_URL
     feasibility_url: str = f"{UMBRA_API_BASE_URL}/tasking/feasibilities"
     stac_url: str = f"{UMBRA_API_BASE_URL}/archive/search"
