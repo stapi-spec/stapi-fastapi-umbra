@@ -123,8 +123,6 @@ class Client:
         )
         response.raise_for_status()
 
-        print(response.json())
-
         task_response = TaskResponse.model_validate(response.json())
 
         return task_response_to_order(task_response, search.product_id)
@@ -147,4 +145,4 @@ class Client:
         )
         response.raise_for_status()
         task_response = TaskResponse.model_validate(response.json())
-        return task_response_to_order(task_response, "unknown")
+        return task_response_to_order(task_response, "umbra_spotlight")
