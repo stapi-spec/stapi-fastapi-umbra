@@ -2,6 +2,7 @@ from geojson_pydantic import Point
 from stapi_fastapi.models.opportunity import (Opportunity,
                                               OpportunityProperties,
                                               OpportunityRequest)
+
 # from stapi_fastapi_umbra.products import SpotlightConstraints
 from stapi_fastapi_umbra.models import (FeasibilityRequest,
                                         FeasibilityResponse, ImagingMode,

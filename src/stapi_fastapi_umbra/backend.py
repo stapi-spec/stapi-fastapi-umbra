@@ -2,13 +2,14 @@
 
 import asyncio
 import json
+from datetime import datetime, timezone
 
-import httpx
-from fastapi import HTTPException, Request
+from fastapi import HTTPException, Request, status
 from stapi_fastapi.models.opportunity import Opportunity, OpportunityRequest
 from stapi_fastapi.models.order import Order
 from stapi_fastapi.models.product import Product
 
+from stapi_fastapi_umbra.client import AuthorizationError, Client
 from stapi_fastapi_umbra.models import FeasibilityResponse
 from stapi_fastapi_umbra.opportunities import (
     feasibility_response_to_opportunity_list,
@@ -44,67 +45,59 @@ class UmbraBackend:
         self, search: OpportunityRequest, request: Request
     ) -> list[Opportunity]:
         """
-        Search for ordering opportunities for the  given search parameters.
+        Search for ordering opportunities for the given search parameters.
+        Opportunities might include existing images from the archive or
+        new opportunities from feasibility.
 
         Backends must validate search constraints and raise
         `stapi_fastapi.backend.exceptions.ConstraintsException` if not valid.
         """
-        if search.product_id == "umbra_spotlight":
-            authorization = request.headers.get("authorization")
-            headers = {"Authorization": authorization}
-
-            payload = opportunity_request_to_feasibility_request(search)
-            payload_to_send = payload.model_dump_json()
-
-            feasibility_post = httpx.post(
-                url=settings.feasibility_url,
-                json=json.loads(payload_to_send),
-                headers=headers,
-            )
-
-            feasibility_post.raise_for_status()
-            request_id = feasibility_post.json()["id"]
-            i = 0
-            while i <= settings.feasibility_timeout:
-                feasibility_get = httpx.get(
-                    url=f"{settings.feasibility_url}/{request_id}",
-                    headers=headers,
-                )
-                feasibility_get.raise_for_status()
-                status = feasibility_get.json()["status"]
-
-                if status == "COMPLETED":
-                    break
-                await asyncio.sleep(1)
-
-            feasibility_response = FeasibilityResponse.model_validate(
-                feasibility_get.json()
-            )
-            opportunities = feasibility_response_to_opportunity_list(
-                feasibility_response, product_id=search.product_id
-            )
-
-            return opportunities
-
-        elif search.product_id == "umbra_archive_catalog":
-            request_payload = {"filter-lang": "cql2-json", **search.model_dump()}
-
-            # SearchOpportunity requires a `geometry` field, but the Canopy API archive/search
-            # route uses an optional 'intersects' field.
-            request_payload["intersects"] = request_payload.pop("geometry")
-
-            res = httpx.post(url=settings.stac_url, json=request_payload)
-            res.raise_for_status()
-            opportunities = [
-                stac_item_to_opportunity(o, product_id=search.product_id)
-                for o in res.json()["features"]
-            ]
-            return opportunities
-        else:
+        if search.product_id != "umbra_spotlight":
             raise HTTPException(
-                status_code=404,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"No available products matching id {search.product_id}",
             )
+
+        start_time, end_time = search.datetime
+
+        now_utc = datetime.now(tz=timezone.utc)
+
+        archive_included = start_time < now_utc
+        archive_only = end_time < now_utc
+
+        authorization = request.headers.get("authorization")
+        client = Client(authorization)
+
+        try:
+            opportunities_from_archive = (
+                await client.get_opportunities_from_archive(search)
+                if archive_included
+                else []
+            )
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Unable to retrieve opportunities from archive",
+            )
+
+        try:
+            opportunities_from_feasibility = (
+                (await client.get_opportunities_from_feasibility(search))
+                if not archive_only
+                else []
+            )
+        except AuthorizationError as err:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=str(err),
+            )
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Unable to retrieve opportunities from feasibility",
+            )
+
+        return opportunities_from_archive + opportunities_from_feasibility
 
     async def create_order(self, search: OpportunityRequest, request: Request) -> Order:
         """
