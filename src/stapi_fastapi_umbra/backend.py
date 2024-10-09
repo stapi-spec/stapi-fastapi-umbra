@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import logging
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, Request, status
@@ -20,6 +21,8 @@ from stapi_fastapi_umbra.products import PRODUCTS
 from stapi_fastapi_umbra.settings import Settings
 
 settings = Settings.load()
+
+logger = logging.getLogger(__name__)
 
 
 class UmbraBackend:
@@ -65,8 +68,11 @@ class UmbraBackend:
         archive_included = start_time < now_utc
         archive_only = end_time < now_utc
 
-        authorization = request.headers.get("authorization")
-        client = Client(authorization)
+        settings = Settings()
+        client = Client(
+            canopy_api_url=settings.canopy_api_url,
+            canopy_token=settings.canopy_token,
+        )
 
         try:
             opportunities_from_archive = (
@@ -75,6 +81,7 @@ class UmbraBackend:
                 else []
             )
         except Exception:
+            logger.exception("Failed to retrieve opportunities from archive")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Unable to retrieve opportunities from archive",
@@ -92,6 +99,7 @@ class UmbraBackend:
                 detail=str(err),
             )
         except Exception:
+            logger.exception("Failed to retrieve opportunities from feasibility")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Unable to retrieve opportunities from feasibility",
