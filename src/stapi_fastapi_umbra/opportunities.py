@@ -1,17 +1,11 @@
 from geojson_pydantic import Point
-from stat_fastapi.models.opportunity import (
-    Opportunity,
-    OpportunityProperties,
-    OpportunityRequest,
-)
-
-# from stat_fastapi_umbra.products import SpotlightConstraints
-from stat_fastapi_umbra.models import (
-    FeasibilityRequest,
-    FeasibilityResponse,
-    ImagingMode,
-    SpotlightConstraints,
-)
+from stapi_fastapi.models.opportunity import (Opportunity,
+                                              OpportunityProperties,
+                                              OpportunityRequest)
+# from stapi_fastapi_umbra.products import SpotlightConstraints
+from stapi_fastapi_umbra.models import (FeasibilityRequest,
+                                        FeasibilityResponse, ImagingMode,
+                                        SpotlightConstraints)
 
 
 def stac_item_to_opportunity(item: dict, product_id: str) -> Opportunity:

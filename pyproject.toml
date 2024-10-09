@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "stat-fastapi-umbra"
+name = "stapi-fastapi-umbra"
 version = "0.0.1"
 description = "Spatio Temporal Asset Tasking with FastAPI, for Umbra!"
 authors = ["Justin Palmer <jaypalm1@gmail.com>"]
@@ -8,10 +8,10 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-fastapi = "^0.110.0"
+fastapi = "^0.115.0"
 pydantic = "^2.6.4"
 geojson-pydantic = "^1.0.2"
-stat_fastapi = { git = "https://github.com/stat-utils/stat-fastapi" }
+stapi_fastapi = { git = "https://github.com/stapi-spec/stapi-fastapi" }
 
 
 [tool.poetry.group.dev.dependencies]
@@ -28,7 +28,7 @@ pre-commit = "^3.7.0"
 mangum = "^0.17.0"
 
 [tool.poetry.scripts]
-dev = "stat_fastapi_umbra.__dev__:cli"
+umbra = "stapi_fastapi_umbra.__dev__:cli"
 
 
 [tool.ruff]
@@ -45,10 +45,10 @@ max-complexity = 8
 show_missing = true
 skip_empty = true
 sort = "Cover"
-omit = ["**/*_test.py", "**/conftest.py", "stat_fastapi/__dev__.py"]
+omit = ["**/*_test.py", "**/conftest.py", "stapi_fastapi/__dev__.py"]
 
 [tool.pytest.ini_options]
-addopts = "--cov=stat_fastapi"
+addopts = "--cov=stapi_fastapi"
 filterwarnings = [
     "ignore:The 'app' shortcut is now deprecated.:DeprecationWarning",
     "ignore:Pydantic serializer warnings:UserWarning",

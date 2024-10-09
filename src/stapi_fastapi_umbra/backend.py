@@ -5,18 +5,18 @@ import json
 
 import httpx
 from fastapi import HTTPException, Request
-from stat_fastapi.models.opportunity import Opportunity, OpportunityRequest
-from stat_fastapi.models.order import Order
-from stat_fastapi.models.product import Product
+from stapi_fastapi.models.opportunity import Opportunity, OpportunityRequest
+from stapi_fastapi.models.order import Order
+from stapi_fastapi.models.product import Product
 
-from stat_fastapi_umbra.models import FeasibilityResponse
-from stat_fastapi_umbra.opportunities import (
+from stapi_fastapi_umbra.models import FeasibilityResponse
+from stapi_fastapi_umbra.opportunities import (
     feasibility_response_to_opportunity_list,
     opportunity_request_to_feasibility_request,
     stac_item_to_opportunity,
 )
-from stat_fastapi_umbra.products import PRODUCTS
-from stat_fastapi_umbra.settings import Settings
+from stapi_fastapi_umbra.products import PRODUCTS
+from stapi_fastapi_umbra.settings import Settings
 
 settings = Settings.load()
 
@@ -24,13 +24,13 @@ settings = Settings.load()
 class UmbraBackend:
     """Umbra STAT Backend"""
 
-    async def get_products(self, request: Request) -> list[Product]:
+    def products(self, request: Request) -> list[Product]:
         """
         Return a list of supported products.
         """
         return PRODUCTS
 
-    async def get_product(self, product_id: str, request: Request) -> Product | None:
+    def product(self, product_id: str, request: Request) -> Product | None:
         """
         Return the product identified by `product_id` or `None` if it isn't
         supported.
@@ -47,7 +47,7 @@ class UmbraBackend:
         Search for ordering opportunities for the  given search parameters.
 
         Backends must validate search constraints and raise
-        `stat_fastapi.backend.exceptions.ConstraintsException` if not valid.
+        `stapi_fastapi.backend.exceptions.ConstraintsException` if not valid.
         """
         if search.product_id == "umbra_spotlight":
             authorization = request.headers.get("authorization")
@@ -88,13 +88,17 @@ class UmbraBackend:
 
         elif search.product_id == "umbra_archive_catalog":
             request_payload = {"filter-lang": "cql2-json", **search.model_dump()}
+
+            # SearchOpportunity requires a `geometry` field, but the Canopy API archive/search
+            # route uses an optional 'intersects' field.
+            request_payload["intersects"] = request_payload.pop("geometry")
+
             res = httpx.post(url=settings.stac_url, json=request_payload)
             res.raise_for_status()
             opportunities = [
                 stac_item_to_opportunity(o, product_id=search.product_id)
                 for o in res.json()["features"]
             ]
-
             return opportunities
         else:
             raise HTTPException(
@@ -107,7 +111,7 @@ class UmbraBackend:
         Create a new order.
 
         Backends must validate order payload and raise
-        `stat_fastapi.backend.exceptions.ConstraintsException` if not valid.
+        `stapi_fastapi.backend.exceptions.ConstraintsException` if not valid.
         """
         raise HTTPException(status_code=400, detail="Not Yet Implemented")
 
@@ -115,7 +119,7 @@ class UmbraBackend:
         """
         Get details for order with `order_id`.
 
-        Backends must raise `stat_fastapi.backend.exceptions.NotFoundException`
+        Backends must raise `stapi_fastapi.backend.exceptions.NotFoundException`
         if not found or access denied.
         """
         raise HTTPException(status_code=400, detail="Not Yet Implemented")
